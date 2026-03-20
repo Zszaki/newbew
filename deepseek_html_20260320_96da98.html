@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Tic Tac Toe Klasik | X vs O</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1b2a3a 0%, #16222e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 16px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 32px 24px;
+            box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            width: fit-content;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            background: transparent;
+            margin: 20px 0 28px 0;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #233142;
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            font-weight: 650;
+            color: white;
+            text-shadow: 0 8px 12px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 12px 0 #0f1a24, 0 8px 18px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.12s ease;
+            user-select: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cell:active:not(.disabled-cell) {
+            transform: translateY(8px);
+            box-shadow: 0 4px 0 #0f1a24, 0 8px 18px rgba(0, 0, 0, 0.5);
+        }
+
+        /* warna khas X dan O */
+        .cell[data-value="X"] {
+            color: #ffb347;
+            text-shadow: 0 0 15px #ffa01c;
+        }
+
+        .cell[data-value="O"] {
+            color: #4db8ff;
+            text-shadow: 0 0 15px #1e90ff;
+        }
+
+        .disabled-cell {
+            cursor: not-allowed;
+            opacity: 0.9;
+            filter: brightness(1.02);
+            pointer-events: none;
+        }
+
+        .status-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #16222ecc;
+            padding: 18px 28px;
+            border-radius: 60px;
+            border: 1px solid #3a4c5e40;
+            backdrop-filter: blur(4px);
+            margin-top: 15px;
+        }
+
+        .turn-indicator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #eef5fb;
+        }
+
+        .turn-badge {
+            background: #1f3345;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-size: 2.2rem;
+            line-height: 1;
+            box-shadow: inset 0 -4px 0 #0b141c;
+            color: #ffb347;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .turn-badge.o-turn {
+            color: #4db8ff;
+        }
+
+        .scoreboard {
+            display: flex;
+            gap: 16px;
+            background: #0d1a24;
+            padding: 12px 20px;
+            border-radius: 40px;
+            box-shadow: inset 0 2px 5px #00000055;
+        }
+
+        .score {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .score span:first-child {
+            color: #bdd3e6;
+        }
+
+        .score span:last-child {
+            background: #1f3345;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #cf6f4a;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 50px;
+            box-shadow: 0 9px 0 #7b402b, 0 5px 15px #00000060;
+            cursor: pointer;
+            transition: 0.08s linear;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #f5b89550;
+        }
+
+        .btn-reset:active {
+            transform: translateY(6px);
+            box-shadow: 0 3px 0 #7b402b, 0 5px 15px #00000060;
+        }
+
+        .winner-msg {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            background: #1c2d3d;
+            padding: 12px 25px;
+            border-radius: 50px;
+            color: #fadf9e;
+            box-shadow: inset 0 -3px 0 #0e1a22;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 3.2rem;
+                border-radius: 25px;
+            }
+            .status-panel {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+            .turn-indicator {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <!-- papan utama -->
+    <div id="board" class="board">
+        <!-- 9 sel akan di-generate javascript biar lebih ringkas -->
+    </div>
+
+    <!-- area status + skor -->
+    <div id="winnerMessage" class="winner-msg">🎮 Giliran X</div>
+
+    <div class="status-panel">
+        <div class="turn-indicator">
+            <span>Giliran</span>
+            <div id="turnBadge" class="turn-badge">X</div>
+        </div>
+        <div class="scoreboard">
+            <div class="score"><span>❌</span> <span id="scoreX">0</span></div>
+            <div class="score"><span>⭕</span> <span id="scoreO">0</span></div>
+        </div>
+    </div>
+
+    <!-- footer dengan tombol reset -->
+    <div class="footer">
+        <button id="resetBtn" class="btn-reset">↻ Reset Game</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- state global ----------
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';         // X selalu mulai
+        let gameActive = true;
+        let scores = { X: 0, O: 0 };
+
+        // elemen2 DOM
+        const boardElement = document.getElementById('board');
+        const winnerMessageEl = document.getElementById('winnerMessage');
+        const turnBadgeEl = document.getElementById('turnBadge');
+        const scoreXEl = document.getElementById('scoreX');
+        const scoreOEl = document.getElementById('scoreO');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // inisialisasi papan: buat 9 cell sekaligus
+        function createBoardCells() {
+            boardElement.innerHTML = ''; 
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.dataset.value = '';        // awalnya kosong
+                cell.textContent = '';           // biar tidak ada teks
+                boardElement.appendChild(cell);
+            }
+        }
+        createBoardCells();
+
+        // ambil semua cell sebagai array
+        const cells = Array.from(document.querySelectorAll('.cell'));
+
+        // perbarui tampilan papan dari array board
+        function renderBoard() {
+            cells.forEach((cell, idx) => {
+                const mark = board[idx];
+                cell.textContent = mark;
+                cell.dataset.value = mark;   // untuk styling X / O
+
+                // tambah / hapus class disabled (hanya untuk visual, pointer-events diatur oleh gameActive)
+                if (!gameActive || mark !== '' || !gameActive) {
+                    // kalau game tidak aktif atau sel sudah terisi, kita kasih class agar terlihat disabled
+                    // tapi kita akan kontrol pointer-events lewat listener saja, class ini hanya untuk gaya
+                    if (mark !== '' || !gameActive) {
+                        cell.classList.add('disabled-cell');
+                    } else {
+                        cell.classList.remove('disabled-cell');
+                    }
+                } else {
+                    cell.classList.remove('disabled-cell');
+                }
+            });
+
+            // update badge giliran
+            if (gameActive) {
+                turnBadgeEl.textContent = currentPlayer;
+                turnBadgeEl.className = `turn-badge ${currentPlayer === 'X' ? '' : 'o-turn'}`;
+            } else {
+                // jika game tidak aktif, badge mungkin menampilkan pemenang atau seri, tetapi kita biarkan sesuai currentPlayer, nanti diubah oleh message
+            }
+
+            // update skor
+            scoreXEl.textContent = scores.X;
+            scoreOEl.textContent = scores.O;
+        }
+
+        // cek pemenang atau seri, mengembalikan objek { winner: 'X'/'O'/'draw'/null, winningCombo: array[] jika menang }
+        function checkGameState() {
+            const winPatterns = [
+                [0,1,2], [3,4,5], [6,7,8], // baris
+                [0,3,6], [1,4,7], [2,5,8], // kolom
+                [0,4,8], [2,4,6]           // diagonal
+            ];
+
+            for (let pattern of winPatterns) {
+                const [a,b,c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return { winner: board[a], winningCombo: pattern };
+                }
+            }
+
+            // cek apakah semua sel terisi (seri)
+            if (board.every(cell => cell !== '')) {
+                return { winner: 'draw', winningCombo: null };
+            }
+
+            return { winner: null, winningCombo: null };
+        }
+
+        // menangani klik di sel
+        function handleCellClick(e) {
+            const cell = e.currentTarget;
+            const index = parseInt(cell.dataset.index);
+
+            // cek apakah game aktif dan sel kosong
+            if (!gameActive) return;
+            if (board[index] !== '') return;
+
+            // update board array
+            board[index] = currentPlayer;
+
+            // cek state setelah move
+            const { winner, winningCombo } = checkGameState();
+
+            if (winner) {
+                // ada pemenang atau seri
+                if (winner === 'draw') {
+                    winnerMessageEl.textContent = '🤝 Hasil seri!';
+                    gameActive = false;
+                } else {
+                    // X atau O menang
+                    winnerMessageEl.textContent = `🏆 Pemenang: ${winner}`;
+                    scores[winner] += 1;          // tambah skor
+                    gameActive = false;
+
+                    // bonus: beri highlight pada sel pemenang (opsional)
+                    if (winningCombo) {
+                        winningCombo.forEach(idx => {
+                            cells[idx].style.background = '#3f5e7a';
+                            cells[idx].style.transition = '0.2s';
+                        });
+                    }
+                }
+                // nonaktifkan semua sel (melalui render nanti akan kasih class disabled)
+                // tapi kita set gameActive = false, render akan menambahkan disabled-cell ke semua
+            } else {
+                // tidak ada pemenang, lanjut ganti pemain
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                winnerMessageEl.textContent = `🎮 Giliran ${currentPlayer}`;
+            }
+
+            // render ulang papan dengan kondisi terbaru
+            renderBoard();
+
+            // jika game berakhir karena menang/seri, pastikan semua sel tidak bisa diklik
+            if (!gameActive) {
+                cells.forEach(c => c.classList.add('disabled-cell'));
+                // badge mungkin tetap menampilkan pemain terakhir, tetapi message sudah berubah
+                // sinkronkan badge ke pemenang atau seri? lebih baik tetap menampilkan siapa yang terakhir main, tidak masalah
+            }
+        }
+
+        // pasang event listener ke setiap sel
+        function attachListeners() {
+            cells.forEach(cell => {
+                cell.removeEventListener('click', handleCellClick);
+                cell.addEventListener('click', handleCellClick);
+            });
+        }
+        attachListeners();
+
+        // reset game (tanpa reset skor, sesuai keinginan umum)
+        function resetGame(keepScore = true) {
+            // kosongkan board
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';   // X selalu mulai
+            gameActive = true;
+
+            // reset warna background sel (jika ada highlight)
+            cells.forEach(cell => {
+                cell.style.background = ''; // kembalikan ke CSS default
+                cell.classList.remove('disabled-cell');
+            });
+
+            // pesan default
+            winnerMessageEl.textContent = '🎮 Giliran X';
+            // render board dan badge
+            renderBoard();
+        }
+
+        // reset total (skor direset juga)
+        function resetFullGame() {
+            scores = { X: 0, O: 0 };
+            resetGame(true);    // tetap panggil reset game
+            // render skor
+            renderBoard();
+        }
+
+        // event tombol reset: pilihan: klik biasa reset papan, double reset untuk reset skor? 
+        // lebih baik sederhana: reset papan, namun kita tambah fitur: jika tahan tombol atau klik dua kali?
+        // saya buat: sekali klik = reset papan (skor tetap). biar intuitif.
+        resetBtn.addEventListener('click', () => {
+            resetGame();
+        });
+
+        // opsi reset skor dengan double klik pada tombol (sembunyi-sembunyi)
+        resetBtn.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            resetFullGame();
+            // kasih feedback singkat (ubah message)
+            winnerMessageEl.textContent = '✨ Skor direset!';
+            setTimeout(() => {
+                if (gameActive) winnerMessageEl.textContent = `🎮 Giliran ${currentPlayer}`;
+            }, 800);
+        });
+
+        // inisialisasi tampilan
+        renderBoard();
+
+        // jaga agar semua sel memiliki event (jika ada render ulang berlebihan, tetap aman)
+        // namun karena kita tidak menghapuk cell, listener tetap aktif.
+        // optional: tambahkan sedikit fallback jika ada cell baru, tidak ada karena kita buat sekali.
+    })();
+</script>
+</body>
+</html>
